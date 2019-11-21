@@ -3,6 +3,8 @@ K4ADriver
 This is OpenNI2 Driver for Azure Kinect.  
 You can use OpenNI2 with Azure Kinect by install <code>k4adriver.dll</code> to OpenNI2 driver directory.
 
+![image](https://user-images.githubusercontent.com/816705/69304852-09b8a400-0c1a-11ea-8b6a-8eb013b66fd8.jpg)
+
 WIP
 ---
 This driver is experimental implementation.  
