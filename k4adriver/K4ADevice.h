@@ -29,12 +29,12 @@ namespace oni
 
                 virtual OniBool isPropertySupported( int propertyId );
 
-                virtual OniBool isImageRegistrationModeSupported( OniImageRegistrationMode mode ) { return TRUE; };
+                virtual OniBool isImageRegistrationModeSupported( OniImageRegistrationMode mode ){ return ( mode == registration_mode ); };
 
-                inline class K4ADriver*  getDriver()      { return k4a_driver;  }
-                inline class K4ACapture* getCapture()     { return k4a_capture; }
-                inline k4a::device*      getDevice()      { return device;      }
-                inline k4a::calibration  getCalibration() { return calibration; }
+                inline class K4ADriver*  getDriver()     { return k4a_driver;  }
+                inline class K4ACapture* getCapture()    { return k4a_capture; }
+                inline k4a::device*      getDevice()     { return device;      }
+                inline k4a::calibration  getCalibration(){ return calibration; }
                 inline OniImageRegistrationMode getRegistrationMode() const { return registration_mode; }
 
             protected:
@@ -44,9 +44,11 @@ namespace oni
             protected:
                 class K4ACapture* k4a_capture;
                 class K4ADriver* k4a_driver;
-                k4a::device* device;
 
+                k4a::device* device;
                 k4a::calibration calibration;
+                k4a_device_configuration_t device_configuration;
+
                 std::vector<OniSensorInfo> sensors;
                 OniImageRegistrationMode registration_mode;
         };

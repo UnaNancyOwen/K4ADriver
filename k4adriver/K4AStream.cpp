@@ -286,7 +286,7 @@ namespace oni
                 OniRGB888Pixel* pixels = reinterpret_cast<OniRGB888Pixel*>( pFrame->data );
                 uint8_t* buffer = reinterpret_cast<uint8_t*>( &color_image[0] );
                 constexpr int32_t channels = 4;
-                const int32_t stride   = width * channels;
+                const int32_t stride = width * channels;
                 #pragma omp parallel for
                 for( int32_t y = 0; y < height; y++ ){
                     for( int32_t x = 0; x < width; x++ ){

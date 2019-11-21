@@ -63,8 +63,10 @@ namespace oni
             K4ATraceFunc( "uri = %s, mode = %s", uri, mode );
 
             try{
-                const int32_t index = std::isdigit( *uri ) ? std::stoi( uri ) : K4A_DEVICE_DEFAULT;
-                device = k4a::device::open( index );
+                if( !device ){
+                    const int32_t index = std::isdigit( *uri ) ? std::stoi( uri ) : K4A_DEVICE_DEFAULT;
+                    device = k4a::device::open( index );
+                }
             }
             catch( const k4a::error & error ){
                 K4ATraceError( "k4a::device::open failed - %s", error.what() );

@@ -9,17 +9,16 @@ namespace oni
             : k4a_driver( k4a_driver ),
               k4a_capture( nullptr ),
               device( device ),
+              device_configuration( K4A_DEVICE_CONFIG_INIT_DISABLE_ALL ),
               registration_mode( ONI_IMAGE_REGISTRATION_OFF )
         {
             K4ALogDebug( "K4ADevice::K4ADevice" );
 
-            k4a_device_configuration_t device_configuration = K4A_DEVICE_CONFIG_INIT_DISABLE_ALL;
             device_configuration.color_format               = k4a_image_format_t::K4A_IMAGE_FORMAT_COLOR_BGRA32;
             device_configuration.color_resolution           = k4a_color_resolution_t::K4A_COLOR_RESOLUTION_720P;
             device_configuration.depth_mode                 = k4a_depth_mode_t::K4A_DEPTH_MODE_NFOV_UNBINNED;
             device_configuration.synchronized_images_only   = true;
             device_configuration.wired_sync_mode            = k4a_wired_sync_mode_t::K4A_WIRED_SYNC_MODE_STANDALONE;
-            device->start_cameras( &device_configuration );
 
             calibration = device->get_calibration( device_configuration.depth_mode, device_configuration.color_resolution );
 
@@ -82,6 +81,7 @@ namespace oni
             K4ATraceFunc( "sensor type = %d", sensorType );
 
             if( !k4a_capture ){
+                device->start_cameras( &device_configuration );
                 k4a_capture = new K4ACapture( this );
             }
 
