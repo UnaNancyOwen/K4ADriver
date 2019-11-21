@@ -5,10 +5,14 @@ namespace oni
 {
     namespace driver
     {
-        K4ACapture::K4ACapture( k4a::device* device )
-            : device( device )
+        K4ACapture::K4ACapture( class K4ADevice* k4a_device )
+            : k4a_device( k4a_device )
         {
             K4ALogDebug( "K4ACapture::K4ACapture" );
+
+            device            = k4a_device->getDevice();
+            registration_mode = k4a_device->getRegistrationMode();
+            transformation    = k4a::transformation( k4a_device->getCalibration() );
 
             start();
         }
@@ -68,8 +72,9 @@ namespace oni
 
                 {
                     if( color_queue.unsafe_size() > MAX_QUEUE_SIZE ){
-                        std::pair<std::vector<uint8_t>, std::chrono::microseconds> data;
-                        color_queue.try_pop( data );
+                        std::pair<std::vector<uint8_t>, std::chrono::microseconds> drop_data;
+                        color_queue.try_pop( drop_data );
+                        std::pair<std::vector<uint8_t>, std::chrono::microseconds>().swap( drop_data );
                     }
 
                     std::vector<uint8_t> buffer;
@@ -86,16 +91,23 @@ namespace oni
 
                 {
                     if( depth_queue.unsafe_size() > MAX_QUEUE_SIZE ){
-                        std::pair<std::vector<uint16_t>, std::chrono::microseconds> data;
-                        depth_queue.try_pop( data );
-                        std::pair<std::vector<uint16_t>, std::chrono::microseconds>().swap( data );
+                        std::pair<std::vector<uint16_t>, std::chrono::microseconds> drop_data;
+                        depth_queue.try_pop( drop_data );
+                        std::pair<std::vector<uint16_t>, std::chrono::microseconds>().swap( drop_data );
                     }
 
                     std::vector<uint16_t> buffer;
                     std::chrono::microseconds time_stamp;
                     k4a::image image = capture.get_depth_image();
                     if( image ){
-                        buffer.assign( reinterpret_cast<uint16_t*>( image.get_buffer() ), reinterpret_cast<uint16_t*>( image.get_buffer() + image.get_size() ) );
+                        if( registration_mode == ONI_IMAGE_REGISTRATION_DEPTH_TO_COLOR ){
+                            k4a::image transformed_image = transformation.depth_image_to_color_camera( image );
+                            buffer.assign( reinterpret_cast<uint16_t*>( transformed_image.get_buffer() ), reinterpret_cast<uint16_t*>( transformed_image.get_buffer() + transformed_image.get_size() ) );
+                            transformed_image.reset();
+                        }
+                        else{
+                            buffer.assign( reinterpret_cast<uint16_t*>( image.get_buffer() ), reinterpret_cast<uint16_t*>( image.get_buffer() + image.get_size() ) );
+                        }
                         time_stamp = image.get_device_timestamp();
                     }
                     image.reset();
@@ -105,9 +117,9 @@ namespace oni
 
                 {
                     if( infrared_queue.unsafe_size() > MAX_QUEUE_SIZE ){
-                        std::pair<std::vector<uint16_t>, std::chrono::microseconds> data;
-                        infrared_queue.try_pop( data );
-                        std::pair<std::vector<uint16_t>, std::chrono::microseconds>().swap( data );
+                        std::pair<std::vector<uint16_t>, std::chrono::microseconds> drop_data;
+                        infrared_queue.try_pop( drop_data );
+                        std::pair<std::vector<uint16_t>, std::chrono::microseconds>().swap( drop_data );
                     }
 
                     std::vector<uint16_t> buffer;

@@ -18,7 +18,7 @@ namespace concurrency = tbb;
 
 #include "K4AStream.h"
 
-#define MAX_QUEUE_SIZE 5
+#define MAX_QUEUE_SIZE 3
 
 namespace oni
 {
@@ -27,7 +27,7 @@ namespace oni
         class K4ACapture
         {
             public:
-                K4ACapture( k4a::device* device );
+                K4ACapture( class K4ADevice* k4a_device );
 
                 ~K4ACapture();
 
@@ -49,8 +49,11 @@ namespace oni
                 void capture_thread();
 
             protected:
+                class K4ADevice* k4a_device;
                 k4a::device* device;
                 k4a::capture capture;
+                k4a::transformation transformation;
+                OniImageRegistrationMode registration_mode;
 
                 concurrency::concurrent_queue<std::pair<std::vector<uint8_t>, std::chrono::microseconds>> color_queue;
                 concurrency::concurrent_queue<std::pair<std::vector<uint16_t>, std::chrono::microseconds>> depth_queue;

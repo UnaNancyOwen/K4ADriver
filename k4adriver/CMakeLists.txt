@@ -11,6 +11,7 @@ set( CMAKE_CXX_EXTENSIONS OFF )
 # Project
 project( k4adriver LANGUAGES CXX )
 add_library( k4adriver SHARED
+  K4AUtil.h
   K4ADriver.h
   K4ADriver.cpp
   K4ADevice.h

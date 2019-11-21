@@ -8,9 +8,8 @@ WIP
 This driver is experimental implementation.  
 The some features doesn't work yet.  
 
-* Multi Device Support
-* Image Registration Settings
 * Video Mode (Resolution, FPS, Pixel Format) Settings
+* Multi Device Support
 * NiTE2 Support
 
 Environment

@@ -17,7 +17,7 @@ namespace oni
         class K4AStream : public StreamBase
         {
             public:
-                K4AStream( class K4ACapture* k4a_capture, class K4ADevice* k4a_device );
+                K4AStream( class K4ADevice* k4a_device );
 
                 virtual ~K4AStream();
 
@@ -31,25 +31,28 @@ namespace oni
 
                 virtual OniBool isPropertySupported( int propertyId );
 
+                virtual OniStatus convertDepthToColorCoordinates( StreamBase* colorStream, int depthX, int depthY, OniDepthPixel depthZ, int* pColorX, int* pColorY );
+
                 virtual void MainLoop() = 0;
 
             protected:
                 K4AStream( const K4AStream& );
                 void operator=( const K4AStream& );
 
-                void capture_thread( void* pThreadParam )
+                void capture_thread( void* param )
                 {
-                    K4AStream* pStream = reinterpret_cast<K4AStream*>( pThreadParam );
-                    pStream->MainLoop();
+                    K4AStream* stream = reinterpret_cast<K4AStream*>( param );
+                    stream->MainLoop();
                 }
 
             protected:
-                class K4ACapture* k4a_capture;
                 class K4ADevice* k4a_device;
+                class K4ACapture* k4a_capture;
 
                 std::atomic_bool is_running;
                 std::thread thread;
 
+                OniImageRegistrationMode registration_mode;
                 OniVideoMode video_mode;
                 size_t bytes_per_pixel;
                 float horizontal_fov;
@@ -59,7 +62,7 @@ namespace oni
         class K4AColorStream : public K4AStream
         {
         public:
-            K4AColorStream( class K4ACapture* k4a_capture, class K4ADevice* k4a_device );
+            K4AColorStream( class K4ADevice* k4a_device );
 
             virtual ~K4AColorStream();
 
@@ -69,7 +72,7 @@ namespace oni
         class K4ADepthStream : public K4AStream
         {
             public:
-                K4ADepthStream( class K4ACapture* k4a_capture, class K4ADevice* k4a_device );
+                K4ADepthStream( class K4ADevice* k4a_device );
 
                 virtual ~K4ADepthStream();
 
@@ -79,7 +82,7 @@ namespace oni
         class K4AInfraredStream : public K4AStream
         {
         public:
-            K4AInfraredStream( class K4ACapture* k4a_capture, class K4ADevice* k4a_device );
+            K4AInfraredStream( class K4ADevice* k4a_device );
 
             virtual ~K4AInfraredStream();
 

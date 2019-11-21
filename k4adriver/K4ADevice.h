@@ -32,6 +32,7 @@ namespace oni
                 virtual OniBool isImageRegistrationModeSupported( OniImageRegistrationMode mode ) { return TRUE; };
 
                 inline class K4ADriver*  getDriver()      { return k4a_driver;  }
+                inline class K4ACapture* getCapture()     { return k4a_capture; }
                 inline k4a::device*      getDevice()      { return device;      }
                 inline k4a::calibration  getCalibration() { return calibration; }
                 inline OniImageRegistrationMode getRegistrationMode() const { return registration_mode; }

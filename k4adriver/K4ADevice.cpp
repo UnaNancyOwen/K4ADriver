@@ -7,6 +7,7 @@ namespace oni
     {
         K4ADevice::K4ADevice( class K4ADriver* k4a_driver, k4a::device* device )
             : k4a_driver( k4a_driver ),
+              k4a_capture( nullptr ),
               device( device ),
               registration_mode( ONI_IMAGE_REGISTRATION_OFF )
         {
@@ -22,16 +23,6 @@ namespace oni
 
             calibration = device->get_calibration( device_configuration.depth_mode, device_configuration.color_resolution );
 
-            OniSensorInfo depth_sensor;
-            depth_sensor.pSupportedVideoModes                = new OniVideoMode[1];
-            depth_sensor.sensorType                          = ONI_SENSOR_DEPTH;
-            depth_sensor.numSupportedVideoModes              = 1;
-            depth_sensor.pSupportedVideoModes[0].pixelFormat = ONI_PIXEL_FORMAT_DEPTH_1_MM;
-            depth_sensor.pSupportedVideoModes[0].fps         = 30;
-            depth_sensor.pSupportedVideoModes[0].resolutionX = calibration.depth_camera_calibration.resolution_width;
-            depth_sensor.pSupportedVideoModes[0].resolutionY = calibration.depth_camera_calibration.resolution_height;
-            sensors.push_back( depth_sensor );
-
             OniSensorInfo color_sensor;
             color_sensor.pSupportedVideoModes                = new OniVideoMode[1];
             color_sensor.sensorType                          = ONI_SENSOR_COLOR;
@@ -42,6 +33,16 @@ namespace oni
             color_sensor.pSupportedVideoModes[0].resolutionY = calibration.color_camera_calibration.resolution_height;
             sensors.push_back( color_sensor );
 
+            OniSensorInfo depth_sensor;
+            depth_sensor.pSupportedVideoModes                = new OniVideoMode[1];
+            depth_sensor.sensorType                          = ONI_SENSOR_DEPTH;
+            depth_sensor.numSupportedVideoModes              = 1;
+            depth_sensor.pSupportedVideoModes[0].pixelFormat = ONI_PIXEL_FORMAT_DEPTH_1_MM;
+            depth_sensor.pSupportedVideoModes[0].fps         = 30;
+            depth_sensor.pSupportedVideoModes[0].resolutionX = calibration.depth_camera_calibration.resolution_width;
+            depth_sensor.pSupportedVideoModes[0].resolutionY = calibration.depth_camera_calibration.resolution_height;
+            sensors.push_back( depth_sensor );
+
             OniSensorInfo infrared_sensor;
             infrared_sensor.pSupportedVideoModes                = new OniVideoMode[1];
             infrared_sensor.sensorType                          = ONI_SENSOR_IR;
@@ -51,8 +52,6 @@ namespace oni
             infrared_sensor.pSupportedVideoModes[0].resolutionX = calibration.depth_camera_calibration.resolution_width;
             infrared_sensor.pSupportedVideoModes[0].resolutionY = calibration.depth_camera_calibration.resolution_height;
             sensors.push_back( infrared_sensor );
-
-            k4a_capture = new K4ACapture( device );
         }
 
         K4ADevice::~K4ADevice()
@@ -82,13 +81,17 @@ namespace oni
         {
             K4ATraceFunc( "sensor type = %d", sensorType );
 
+            if( !k4a_capture ){
+                k4a_capture = new K4ACapture( this );
+            }
+
             switch( sensorType ){
                 case ONI_SENSOR_COLOR:
-                    return new K4AColorStream( k4a_capture, this );
+                    return new K4AColorStream( this );
                 case ONI_SENSOR_DEPTH:
-                    return new K4ADepthStream( k4a_capture, this );
+                    return new K4ADepthStream( this );
                 case ONI_SENSOR_IR:
-                    return new K4AInfraredStream( k4a_capture, this );
+                    return new K4AInfraredStream( this );
                 default:
                     return nullptr;
             }
@@ -168,9 +171,10 @@ namespace oni
                     }
                     break;
                 #ifdef XN_MODULE_PROPERTY_AHB
+                // Hack NiTE2 (Refer to RealSense SDK)
                 case XN_MODULE_PROPERTY_AHB:
-                    if( data && pDataSize && *pDataSize == 12 ){
-                        unsigned char hack[] = { 0x40, 0x0, 0x0, 0x28, 0x6A, 0x26, 0x54, 0x4F, 0xFF, 0xFF, 0xFF, 0xFF };
+                    if( data && pDataSize && *pDataSize == sizeof( uint8_t ) * 12 ){
+                        const uint8_t hack[] = { 0x40, 0x0, 0x0, 0x28, 0x6A, 0x26, 0x54, 0x4F, 0xFF, 0xFF, 0xFF, 0xFF };
                         memcpy( data, hack, sizeof( hack ) );
                         return ONI_STATUS_OK;
                     }
